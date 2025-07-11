@@ -4,6 +4,10 @@ import { MongooseModule } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 import { AppController } from './app.controller';
 
+import { AuthModule } from './auth/auth.module';
+import { ProtectedController } from './protected.controller';
+
+
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -25,7 +29,8 @@ import { AppController } from './app.controller';
       }),
       inject: [ConfigService],
     }),
+    AuthModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, ProtectedController],
 })
 export class AppModule {}
