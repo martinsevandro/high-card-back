@@ -11,6 +11,8 @@ import { CardsModule } from './cards/cards.module';
 
 import { UsersModule } from './users/users.module';
 
+import { RiotModule } from './riot/dto/riot.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -35,6 +37,7 @@ import { UsersModule } from './users/users.module';
     AuthModule,
     CardsModule,
     UsersModule,
+    RiotModule
   ],
   controllers: [AppController, ProtectedController],
 })
