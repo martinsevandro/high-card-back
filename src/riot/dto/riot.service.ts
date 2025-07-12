@@ -1,11 +1,7 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
-import { getRegionalRoute, isValidRiotId, defineSkinPosition } from '../utils/riot.utils';
-import { createFilteredData } from '../utils/riot.utils';
-import * as dotenv from 'dotenv';
-
-dotenv.config();
+import { getRegionalRoute, isValidRiotId, defineSkinPosition, createFilteredData } from '../utils/riot.utils';    
 
 @Injectable()
 export class RiotService {

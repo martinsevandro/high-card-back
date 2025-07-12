@@ -9,49 +9,29 @@ import {
   getAugmentIconUrl,
 } from 'src/cards/utils/card.utils';
 
-export function getRegionalRoute(server: string): string | null {
-  const mapping: Record<string, string> = {
-    br1: 'americas',
-    na1: 'americas',
-    la1: 'americas',
-    la2: 'americas',
-    euw1: 'europe',
-    eun1: 'europe',
-    tr1: 'europe',
-    ru: 'europe',
-    kr: 'asia',
-    kr1: 'asia',
-    jp1: 'asia',
-    oc1: 'sea',
-    ph2: 'sea',
-    sg2: 'sea',
-    th2: 'sea',
-    tw2: 'sea',
-    vn2: 'sea',
-  };
+export function getRegionalRoute(server: string): 'americas' | 'europe' | 'asia' | null {
+  if (typeof server !== 'string') return null;
 
-  return mapping[server.toLowerCase()] || null;
+  const normalizedServer = server.toLowerCase().trim();
+
+  const americas = ['br1', 'na1', 'la1', 'la2', 'oc1'];
+  const europe = ['euw1', 'eun1', 'tr1', 'ru1'];
+  const asia = ['kr', 'kr1', 'jp1'];
+
+  if (americas.includes(normalizedServer)) return 'americas';
+  if (europe.includes(normalizedServer)) return 'europe';
+  if (asia.includes(normalizedServer)) return 'asia';
+
+  return null;
 }
+
 
 export function isValidRiotId(
   name: string,
   tag: string,
   server: string,
 ): boolean {
-  const validServers = [
-    'br1',
-    'na1',
-    'euw1',
-    'eun1',
-    'kr',
-    'kr1',
-    'jp1',
-    'la1',
-    'la2',
-    'oc1',
-    'tr1',
-    'ru1',
-  ];
+  const validServers = ['br1', 'na1', 'euw1', 'eun1', 'kr', 'kr1', 'jp1', 'la1', 'la2', 'oc1', 'tr1', 'ru1']; 
 
   const isValidString = (str: string, min: number, max: number): boolean =>
     typeof str === 'string' &&
@@ -72,11 +52,27 @@ export function defineSkinPosition(
   deaths: number,
   assists: number,
 ): number {
-  const kda = (kills + assists) / Math.max(1, deaths);
+  if (skins.length === 0) return 0;
 
-  if (kda < 2) return 0;
-  if (kda < 4) return skins.length > 1 ? 1 : 0;
-  return skins.length > 2 ? 2 : skins.length - 1;
+  const kda = Number(((kills + assists) / Math.max(deaths, 1)).toFixed(1));
+
+  let quartile = 0;
+  if (kda < 1.0) {
+    quartile = 0;
+  } else if (kda < 3.0) {
+    quartile = 1;
+  } else if (kda < 5.0) {
+    quartile = 2;
+  } else {
+    quartile = 3;
+  }
+
+  const quartileSize = Math.ceil(skins.length / 4);
+  const endIndex = Math.min((quartile + 1) * quartileSize, skins.length);
+
+  const randomIndex = Math.floor(Math.random() * endIndex);
+
+  return randomIndex;
 }
 
 function buildAchievements(data: {

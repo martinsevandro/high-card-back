@@ -15,7 +15,7 @@ import { RiotModule } from './riot/dto/riot.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot( { isGlobal: true } ),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (config: ConfigService) => ({
