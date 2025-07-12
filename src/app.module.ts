@@ -7,6 +7,9 @@ import { AppController } from './app.controller';
 import { AuthModule } from './auth/auth.module';
 import { ProtectedController } from './protected.controller';
 
+import { CardsModule } from './cards/cards.module'; 
+
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -30,6 +33,8 @@ import { ProtectedController } from './protected.controller';
       inject: [ConfigService],
     }),
     AuthModule,
+    CardsModule,
+    UsersModule,
   ],
   controllers: [AppController, ProtectedController],
 })
