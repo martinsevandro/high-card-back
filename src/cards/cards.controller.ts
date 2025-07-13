@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, UseGuards, Request } from '@nestjs/common'; 
+import { Controller, Post, Get, Body, UseGuards, Request, Delete, Param, HttpCode } from '@nestjs/common'; 
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CardsService } from './cards.service';
 
@@ -10,15 +10,23 @@ export class CardsController {
   constructor(private readonly cardsService: CardsService) {}
 
   @UseGuards(JwtAuthGuard)
-  @Post()
-  async create(@Body() cardData: CreateCardDto, @Request() req: any) {
-    const user = req.user as { id: string };
-    return this.cardsService.createCard(cardData, user.id);
-} 
+  @Get('my-deck')
+  async getMyDeck(@Request() req: RequestWithUser) { 
+    return this.cardsService.findAllByUser(req.user.id);
+  }
 
   @UseGuards(JwtAuthGuard)
-  @Get()
-  async findAllUserCards(@Request() req: RequestWithUser) { 
-    return this.cardsService.findAllByUser(req.user.id);
+  @Post('save')
+  async saveCard(@Body() dto: CreateCardDto, @Request() req: RequestWithUser) {
+    const user = req.user as { id: string };
+    return this.cardsService.saveCardForUser(user.id, dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id')
+  @HttpCode(204)
+  async deleteCard(@Param('id') cardId: string, @Request() req: RequestWithUser): Promise<void> { 
+    const user = req.user as { id: string };
+    await this.cardsService.deleteCardById(user.id, cardId);
   }
 }

@@ -16,10 +16,12 @@ import { RiotModule } from './riot/dto/riot.module';
 @Module({
   imports: [
     ConfigModule.forRoot( { isGlobal: true } ),
+
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (config: ConfigService) => ({
         uri: config.get<string>('MONGODB_URI'),
+        autoIndex: config.get<string>('NODE_ENV') !== 'production',
         verboseRetryLog: true,
         connectionFactory: (connection) => {
           mongoose.set('debug', true);

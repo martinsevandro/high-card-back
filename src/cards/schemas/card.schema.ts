@@ -152,8 +152,27 @@ export class Card {
   @Prop({ type: Object })
   augments: Record<string, string | null>;
 
+  @Prop({ type: [String], default: [] })
+  achievements: string[]; 
+
   @Prop()
   gameDate: string;
 }
 
 export const CardSchema = SchemaFactory.createForClass(Card);
+
+CardSchema.index(
+  {
+    userId: 1,
+    gameMode: 1,
+    championName: 1,
+    gameLength: 1,
+    gameDate: 1,
+    kda: 1,
+    damagePerMinute: 1,
+  },
+  { 
+    unique: true,
+    name: 'unique_card_per_user',
+   }
+);
