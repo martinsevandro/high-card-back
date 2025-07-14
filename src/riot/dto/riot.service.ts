@@ -76,6 +76,8 @@ export class RiotService {
 
       const [matchId] = response.data || [];
 
+      console.log(`Último_ID de partida: ${matchId}`);
+
       if (!matchId) {
         throw new HttpException('Nenhuma partida encontrada.', HttpStatus.NOT_FOUND);
       }

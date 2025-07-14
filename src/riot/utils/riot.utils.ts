@@ -199,6 +199,7 @@ export function createFilteredData(
    const gameDurationMinutes = matchData.info.gameDuration / 60;
 
    return {
+      matchId: matchData.metadata.matchId,
       gameMode: matchData.info.gameMode,
       championName: playerStats.championName,
       riotIdGameName: playerStats.riotIdGameName,
