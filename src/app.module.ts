@@ -13,6 +13,8 @@ import { UsersModule } from './users/users.module';
 
 import { RiotModule } from './riot/dto/riot.module';
 
+import { DuelsModule } from './duels/duels.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot( { isGlobal: true } ),
@@ -39,7 +41,8 @@ import { RiotModule } from './riot/dto/riot.module';
     AuthModule,
     CardsModule,
     UsersModule,
-    RiotModule
+    RiotModule,
+    DuelsModule
   ],
   controllers: [AppController, ProtectedController],
 })
