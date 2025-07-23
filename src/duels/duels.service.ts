@@ -78,8 +78,8 @@ export class DuelsService {
       return embaralhado.slice(0, 3);
    }
 
-   removeFromQueue(socketId: string) {
-      this.queue = this.queue.filter((p) => p.socketId !== socketId);
+   removeFromQueue(userId: string) {
+      this.queue = this.queue.filter((p) => p.userId !== userId);
    }
 
    removeRoom(roomId: string) {

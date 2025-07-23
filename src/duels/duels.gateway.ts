@@ -10,19 +10,51 @@ import {
 import { Server, Socket } from 'socket.io';
 import { DuelsService } from './duels.service';
 import { Player, DuelRoom, Card } from './types/duels.types';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
+import { Inject, UseGuards } from '@nestjs/common';
 
 @WebSocketGateway({ cors: true })
 export class DuelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
    @WebSocketServer() server: Server;
 
-   constructor(private readonly duelsService: DuelsService) {}
+   constructor(
+      private readonly duelsService: DuelsService,
+      private readonly jwtService: JwtService,
+      private readonly configService: ConfigService,
+   ) {}
 
    async handleConnection(socket: Socket) {
       console.log(`Cliente conectado - socket: ${socket.id}`);
+
+      const token = socket.handshake.auth?.token;
+
+      if (!token) {
+         console.error('Token não fornecido na conexão WebSocket');
+         socket.disconnect();
+         return;
+      }
+
+      try {
+         const payload = this.jwtService.verify(token, {
+            secret: this.configService.get<string>('JWT_SECRET'),
+         });
+
+         socket.data.userId = payload.sub;
+         socket.data.username = payload.username;
+
+         console.log(
+            `socket conectado: ${socket.id} | usuário: ${payload.username}`,
+         );
+      } catch (err) {
+         console.warn('Token inválido na conexão webscoket:', err.message);
+         socket.disconnect();
+      }
    }
 
    async handleDisconnect(socket: Socket) {
       const disconnectedId = socket.id;
+      const disconnectedUserId = socket.data.userId;
 
       const rooms = this.duelsService.getAllRooms();
 
@@ -30,8 +62,10 @@ export class DuelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
          r.players.some((p) => p.socketId === disconnectedId),
       );
 
-      if (!room){
-         this.duelsService.removeFromQueue(disconnectedId);
+      if (!room) {
+         if (disconnectedUserId) {
+            this.duelsService.removeFromQueue(disconnectedUserId);
+         }
          return;
       }
 
@@ -64,15 +98,16 @@ export class DuelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       this.duelsService.removeRoom(room.roomId);
 
-      this.duelsService.removeFromQueue(disconnectedId);
+      if (disconnectedUserId) {
+         this.duelsService.removeFromQueue(disconnectedUserId);
+      }
    }
 
    @SubscribeMessage('join_duel_queue')
-   async handleJoinQueue(
-      @MessageBody() data: { userId: string; username: string },
-      @ConnectedSocket() client: Socket,
-   ) {
-      const { userId, username } = data;
+   async handleJoinQueue(@ConnectedSocket() client: Socket) {
+      const userId = client.data.userId;
+      const username = client.data.username;
+      const socketId = client.id;
 
       try {
          const deck = await this.duelsService.getUserDeck(userId);
@@ -86,7 +121,7 @@ export class DuelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
          }
 
          const player: Player = {
-            socketId: client.id,
+            socketId,
             userId,
             username,
             deck: deck.slice(0, 10),
@@ -356,29 +391,13 @@ export class DuelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
    @SubscribeMessage('leave_duel_queue')
    async onLeaveQueue(client: Socket) {
-      this.duelsService.removeFromQueue(client.id);
+      this.duelsService.removeFromQueue(client.data.userId);
       client.emit('queue_left');
 
       console.log(
          'Fila atual:',
          this.duelsService['queue'].map((p) => p.userId),
       );
- 
    }
 
-   @SubscribeMessage('select_card')
-   async onSelectCard(client: Socket, payload: { card: any }) {
-      const room = this.duelsService.getRoomBySocket(client.id);
-      if (!room) return;
-
-      const player = room.players.find((p) => p.socketId === client.id);
-      if (!player) return;
-
-      player.deck = player.deck.filter((c) => c.id !== payload.card.id);
-
-      client.emit('card_selected_ack', {
-         select: payload.card,
-         remainingDeck: player.deck,
-      });
-   }
 }

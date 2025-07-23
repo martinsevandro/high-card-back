@@ -14,7 +14,7 @@
       </style>
    </head>
    <body>
-      <h2>Usuário: yu1</h2>
+      <h2>Usuário: test3</h2>
 
       <button id="joinQueue">Entrar na fila</button>
       <button id="leaveQueue">Sair da fila</button>
@@ -33,11 +33,10 @@
 
       <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
       <script>
-         const username = 'yu1';
-         const userId = '6877ec47f06d00e63c7561ff';
+         const username = 'test3';
+         const userId = '6877a7a891d7edacb8c16b3b';
          const accessToken =
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2ODc3ZWM0N2YwNmQwMGU2M2M3NTYxZmYiLCJ1c2VybmFtZSI6Inl1MSIsImlhdCI6MTc1MzMxMTA1NiwiZXhwIjoxNzUzMzk3NDU2fQ.uUULp24ILV5G3AdVq6dir7hCMuCyNpb6AvFwBkqzxNI';
-
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2ODc3YTdhODkxZDdlZGFjYjhjMTZiM2IiLCJ1c2VybmFtZSI6InRlc3QzIiwiaWF0IjoxNzUzMzExMDczLCJleHAiOjE3NTMzOTc0NzN9.5ySlaMB2IByqM7F_4dFOGNj189qSuLFWpC5DLHqCXGs';
          const socket = io('http://localhost:3000', {
             auth: {
                token: accessToken,
