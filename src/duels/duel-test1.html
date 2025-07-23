@@ -60,6 +60,10 @@
             statusDiv.textContent = 'Aguardando oponente...';
          });
 
+         socket.on('queue_left', () => {
+            statusDiv.textContent = 'Saiu da fila recentemente.';
+         });
+
          socket.on('duel_start', (data) => {
             console.log('duel_start recebido:', data);
             statusDiv.textContent = `Duelo contra ${data.opponent}, sala: ${data.roomId}`;

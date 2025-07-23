@@ -28,7 +28,7 @@
       <h3>Sua escolha:</h3>
       <div id="selectedCard">Nenhuma</div>
 
-      <h3>Oponente:</h3>
+      <h3>Histórico do Oponente:</h3>
       <div id="opponentCardDiv">Nenhuma</div>
 
       <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
@@ -59,6 +59,10 @@
             statusDiv.textContent = 'Aguardando oponente...';
          });
 
+         socket.on('queue_left', () => {
+            statusDiv.textContent = 'Saiu da fila recentemente.';
+         });
+
          socket.on('duel_start', (data) => {
             console.log('duel_start recebido:', data);
             statusDiv.textContent = `Duelo contra ${data.opponent}, sala: ${data.roomId}`;
@@ -76,6 +80,15 @@
             selectedCardDiv.textContent = 'Nenhuma';
          });
 
+         socket.on('roundSummary', (data) => { 
+            const { round, card1KDA, card2KDA, result, scores } = data;
+
+            statusDiv.textContent =
+               `Rodada ${round}: ${result} | ` +
+               `KDA P1: ${card1KDA} vs KDA P2: ${card2KDA} | ` +
+               `Placar: ${JSON.stringify(scores)}`;
+         });
+
          socket.on('roundResult', (data) => {
             const { yourCard, opponentCard, result, scores } = data;
 
@@ -84,15 +97,13 @@
                oponenteDiv.textContent = `Oponente usou: ${opponentCard.championName} (KDA: ${opponentCard.kda})`;
             }
 
-            statusDiv.textContent =
-               `Rodada ${data.round}: ${data.result} | ` +
-               `KDA P1: ${data.card1KDA} vs KDA P2: ${data.card2KDA} | ` +
-               `Placar: ${JSON.stringify(data.scores)}`;
+            deckDiv.innerHTML = '';
+            selectedCardDiv.textContent = 'Nenhuma';
          });
 
          socket.on('nextRound', (data) => {
             console.log('Deck recebido no nextRound:', data.deck);
-            statusDiv.textContent = `Rodada ${data.round} iniciada`;
+            // statusDiv.textContent = `Rodada ${data.round} iniciada`;
             currentDeck = data.deck;
             selectedCard = null;
             selectedCardDiv.textContent = 'Nenhuma';

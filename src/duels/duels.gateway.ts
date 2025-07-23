@@ -10,8 +10,6 @@ import {
 import { Server, Socket } from 'socket.io';
 import { DuelsService } from './duels.service';
 import { Player, DuelRoom, Card } from './types/duels.types';
-// import { JwtService } from '@nestjs/jwt';
-// import { UnauthorizedException } from '@nestjs/common';
 
 @WebSocketGateway({ cors: true })
 export class DuelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -32,7 +30,10 @@ export class DuelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
          r.players.some((p) => p.socketId === disconnectedId),
       );
 
-      if (!room) return;
+      if (!room){
+         this.duelsService.removeFromQueue(disconnectedId);
+         return;
+      }
 
       const player1 = room.players[0];
       const player2 = room.players[1];
@@ -62,6 +63,8 @@ export class DuelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       });
 
       this.duelsService.removeRoom(room.roomId);
+
+      this.duelsService.removeFromQueue(disconnectedId);
    }
 
    @SubscribeMessage('join_duel_queue')
@@ -102,6 +105,8 @@ export class DuelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
             this.duelsService['queue'].map((p) => p.username),
          );
 
+         client.emit('waiting_for_opponent');
+
          if (room) {
             const [player1, player2] = room.players;
 
@@ -140,22 +145,18 @@ export class DuelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
                   player2.hand.map((c) => c.kda),
                );
 
-               // Salva as mãos no estado da sala
                room.players = [player1, player2];
                room.round = 1;
                room.scores = { [player1.socketId]: 0, [player2.socketId]: 0 };
 
-               // Envia as 3 cartas apenas para o dono de cada mão
                this.server.to(player1.socketId).emit('duel_start', {
                   roomId: room.roomId,
                   opponent: player2.username,
-                  // hand: hand1,
                   deck: player1.hand,
                });
                this.server.to(player2.socketId).emit('duel_start', {
                   roomId: room.roomId,
                   opponent: player1.username,
-                  // hand: hand2,
                   deck: player2.hand,
                });
             }
@@ -362,6 +363,7 @@ export class DuelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
          'Fila atual:',
          this.duelsService['queue'].map((p) => p.userId),
       );
+ 
    }
 
    @SubscribeMessage('select_card')
