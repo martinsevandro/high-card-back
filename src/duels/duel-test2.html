@@ -37,6 +37,7 @@
          const userId = '6877f3428b9e76e928ea9920';
          const accessToken =
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2ODc3ZjM0MjhiOWU3NmU5MjhlYTk5MjAiLCJ1c2VybmFtZSI6ImZha2UiLCJpYXQiOjE3NTMzMTEwMjgsImV4cCI6MTc1MzM5NzQyOH0.yOTNI2D9KQAz46F4i4bPteyy7aRs8FY-lvU1JT_4m7g';
+
          const socket = io('http://localhost:3000', {
             auth: {
                token: accessToken,
@@ -49,6 +50,7 @@
 
          let selectedCard = null;
          let currentDeck = [];
+         let inMatch = false;
 
          socket.on('connect', () => {
             statusDiv.textContent = 'Conectado';
@@ -56,14 +58,19 @@
          });
 
          socket.on('waiting_for_opponent', () => {
-            statusDiv.textContent = 'Aguardando oponente...';
+            if (!inMatch) {
+               statusDiv.textContent = 'Aguardando oponente...';
+            }
          });
 
          socket.on('queue_left', () => {
-            statusDiv.textContent = 'Saiu da fila recentemente.';
+            if (!inMatch) {
+               statusDiv.textContent = 'Saiu da fila recentemente.';
+            }
          });
 
          socket.on('duel_start', (data) => {
+            inMatch = true;
             console.log('duel_start recebido:', data);
             statusDiv.textContent = `Duelo contra ${data.opponent}, sala: ${data.roomId}`;
             if (Array.isArray(data.deck)) {
@@ -75,12 +82,13 @@
          });
 
          socket.on('opponent_disconnected', () => {
+            inMatch = false;
             statusDiv.textContent = 'O oponente saiu da partida.';
             deckDiv.innerHTML = '';
             selectedCardDiv.textContent = 'Nenhuma';
          });
 
-         socket.on('roundSummary', (data) => { 
+         socket.on('roundSummary', (data) => {
             const { round, card1KDA, card2KDA, result, scores } = data;
 
             statusDiv.textContent =
@@ -111,6 +119,7 @@
          });
 
          socket.on('duelEnded', (data) => {
+            inMatch = false;
             console.log('Evento duelEnded recebido no frontend:', data);
             let resultadoFinal;
 

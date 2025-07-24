@@ -325,7 +325,7 @@ export class DuelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const score1 = room.scores[player1.socketId];
       const score2 = room.scores[player2.socketId];
 
-      if (score1 === 2 || score2 === 2 || room.round >= 4) {
+      if (score1 === 2 || score2 === 2 || room.round === 3) {
          let finalResult: string;
          let winnerSocketId: string | null = null;
          if (score1 > score2) {
@@ -367,25 +367,23 @@ export class DuelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
          room.roundPlays = [];
 
-         if (room.round <= 3) {
-            console.log('Iniciando nova rodada:', room.round);
-            console.log(
-               `Nova Mão do ${player1.username}:`,
-               player1.hand.map((c) => c.kda),
-            );
-            this.server.to(player1.socketId).emit('nextRound', {
-               round: room.round,
-               deck: player1.hand,
-            });
-            console.log(
-               `Nova Mão do ${player2.username}:`,
-               player2.hand.map((c) => c.kda),
-            );
-            this.server.to(player2.socketId).emit('nextRound', {
-               round: room.round,
-               deck: player2.hand,
-            });
-         }
+         console.log('Iniciando nova rodada:', room.round);
+         console.log(
+            `Nova Mão do ${player1.username}:`,
+            player1.hand.map((c) => c.kda),
+         );
+         this.server.to(player1.socketId).emit('nextRound', {
+            round: room.round,
+            deck: player1.hand,
+         });
+         console.log(
+            `Nova Mão do ${player2.username}:`,
+            player2.hand.map((c) => c.kda),
+         );
+         this.server.to(player2.socketId).emit('nextRound', {
+            round: room.round,
+            deck: player2.hand,
+         });
       }
    }
 
@@ -399,5 +397,4 @@ export class DuelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
          this.duelsService['queue'].map((p) => p.userId),
       );
    }
-
 }
