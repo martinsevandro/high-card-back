@@ -14,7 +14,7 @@
       </style>
    </head>
    <body>
-      <h2>Usuário: test2</h2>
+      <h2>Usuário: test7</h2>
 
       <button id="joinQueue">Entrar na fila</button>
       <button id="leaveQueue">Sair da fila</button>
@@ -33,10 +33,10 @@
 
       <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
       <script>
-         const username = 'test2';
-         const userId = '6875c6898c47d48911a81ece';
+         const username = 'test7';
+         const userId = '68828c710e2ad911ca207593';
          const accessToken =
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2ODc1YzY4OThjNDdkNDg5MTFhODFlY2UiLCJ1c2VybmFtZSI6InRlc3QyIiwiaWF0IjoxNzUzMzExMTA4LCJleHAiOjE3NTMzOTc1MDh9.qThXvY4lT5fO9hESzqF7FgNPSfaOWYq4Yjhe9YiU7vk';
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2ODgyOGM3MTBlMmFkOTExY2EyMDc1OTMiLCJ1c2VybmFtZSI6InRlc3Q3IiwiaWF0IjoxNzUzMzg2MTQxLCJleHAiOjE3NTM0NzI1NDF9.Od4-aetIwSJiqlppDdKs8dwJaCo7TLcKtY6FsmDevqI';
 
          const socket = io('http://localhost:3000', {
             auth: {
@@ -51,20 +51,26 @@
          let selectedCard = null;
          let currentDeck = [];
          let inMatch = false;
+         let inQueue = false;
 
          socket.on('connect', () => {
             statusDiv.textContent = 'Conectado';
             console.log('meu socket.id:', socket.id);
          });
 
+         socket.on('insuficient_deck', () => {
+            statusDiv.textContent = 'Você precisa de pelo menos 10 cartas no deck.';
+         });
+
          socket.on('waiting_for_opponent', () => {
+            inQueue = true;
             if (!inMatch) {
                statusDiv.textContent = 'Aguardando oponente...';
             }
          });
 
-         socket.on('queue_left', () => {
-            if (!inMatch) {
+         socket.on('queue_left', () => {            
+            if (!inMatch && inQueue) {
                statusDiv.textContent = 'Saiu da fila recentemente.';
             }
          });

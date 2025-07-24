@@ -113,6 +113,8 @@ export class DuelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
          const deck = await this.duelsService.getUserDeck(userId);
 
          if (deck.length < 10) {
+            console.log("usuário não tem cartas suficientes:", username);
+            client.emit('insuficient_deck');
             client.emit(
                'error',
                'Você precisa de pelo menos 10 cartas para entrar em um duelo.',

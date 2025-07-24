@@ -14,7 +14,7 @@
       </style>
    </head>
    <body>
-      <h2>Usuário: test3</h2>
+      <h2>Usuário: test6</h2>
 
       <button id="joinQueue">Entrar na fila</button>
       <button id="leaveQueue">Sair da fila</button>
@@ -33,10 +33,10 @@
 
       <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
       <script>
-         const username = 'test3';
-         const userId = '6877a7a891d7edacb8c16b3b';
+         const username = 'test6';
+         const userId = '68828c690e2ad911ca207590';
          const accessToken =
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2ODc3YTdhODkxZDdlZGFjYjhjMTZiM2IiLCJ1c2VybmFtZSI6InRlc3QzIiwiaWF0IjoxNzUzMzExMDczLCJleHAiOjE3NTMzOTc0NzN9.5ySlaMB2IByqM7F_4dFOGNj189qSuLFWpC5DLHqCXGs';
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2ODgyOGM2OTBlMmFkOTExY2EyMDc1OTAiLCJ1c2VybmFtZSI6InRlc3Q2IiwiaWF0IjoxNzUzMzg2MTA5LCJleHAiOjE3NTM0NzI1MDl9.iIhw7Z63Y8eWJnuMoV6x-3O-GJKfSUulKUeVtCRWkbw';
 
          const socket = io('http://localhost:3000', {
             auth: {
@@ -51,26 +51,34 @@
          let selectedCard = null;
          let currentDeck = [];
          let inMatch = false;
+         let inQueue = false;
 
          socket.on('connect', () => {
             statusDiv.textContent = 'Conectado';
             console.log('meu socket.id:', socket.id);
          });
 
+         socket.on('insuficient_deck', () => {
+            statusDiv.textContent = 'Você precisa de pelo menos 10 cartas no deck.';
+         });
+
          socket.on('waiting_for_opponent', () => {
+            inQueue = true;
             if (!inMatch) {
                statusDiv.textContent = 'Aguardando oponente...';
             }
          });
 
          socket.on('queue_left', () => {
-            if (!inMatch) {
+            if (!inMatch && inQueue) {
                statusDiv.textContent = 'Saiu da fila recentemente.';
+               inQueue = false;
             }
          });
 
          socket.on('duel_start', (data) => {
             inMatch = true;
+            inQueue = false;
             console.log('duel_start recebido:', data);
             statusDiv.textContent = `Duelo contra ${data.opponent}, sala: ${data.roomId}`;
             if (Array.isArray(data.deck)) {
@@ -83,6 +91,7 @@
 
          socket.on('opponent_disconnected', () => {
             inMatch = false;
+            inQueue = false;
             statusDiv.textContent = 'O oponente saiu da partida.';
             deckDiv.innerHTML = '';
             selectedCardDiv.textContent = 'Nenhuma';
@@ -120,6 +129,7 @@
 
          socket.on('duelEnded', (data) => {
             inMatch = false;
+            inQueue = false;
             console.log('Evento duelEnded recebido no frontend:', data);
             let resultadoFinal;
 
