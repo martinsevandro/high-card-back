@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { Player, DuelRoom } from './types/duels.types';
-import { UsersService } from 'src/users/users.service';
 import { CardsService } from 'src/cards/cards.service';
 import { Card } from 'src/cards/schemas/card.schema';
 
@@ -9,10 +8,7 @@ export class DuelsService {
    private queue: Player[] = [];
    private rooms: Map<string, DuelRoom> = new Map();
 
-   constructor(
-      private readonly usersService: UsersService,
-      private readonly cardsService: CardsService,
-   ) {}
+   constructor(private readonly cardsService: CardsService) {}
 
    async getUserDeck(userId: string): Promise<Card[]> {
       return this.cardsService.findAllByUser(userId);

@@ -36,7 +36,7 @@
          const username = 'yu1';
          const userId = '6877ec47f06d00e63c7561ff';
          const accessToken =
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2ODc3ZWM0N2YwNmQwMGU2M2M3NTYxZmYiLCJ1c2VybmFtZSI6Inl1MSIsImlhdCI6MTc1MzMxMTA1NiwiZXhwIjoxNzUzMzk3NDU2fQ.uUULp24ILV5G3AdVq6dir7hCMuCyNpb6AvFwBkqzxNI';
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2ODc3ZWM0N2YwNmQwMGU2M2M3NTYxZmYiLCJ1c2VybmFtZSI6Inl1MSIsImlhdCI6MTc1MzQ2MTE1NSwiZXhwIjoxNzUzNTQ3NTU1fQ.vbn60NE0iHE2ZYGi9eOfgGX8i0o-mw-GGB1urS3KvZ8';
 
          const socket = io('http://localhost:3000', {
             auth: {
@@ -51,26 +51,35 @@
          let selectedCard = null;
          let currentDeck = [];
          let inMatch = false;
+         let inQueue = false;
 
          socket.on('connect', () => {
             statusDiv.textContent = 'Conectado';
             console.log('meu socket.id:', socket.id);
          });
 
+         socket.on('insuficient_deck', () => {
+            statusDiv.textContent =
+               'Você precisa de pelo menos 10 cartas no deck.';
+         });
+
          socket.on('waiting_for_opponent', () => {
+            inQueue = true;
             if (!inMatch) {
                statusDiv.textContent = 'Aguardando oponente...';
             }
          });
 
          socket.on('queue_left', () => {
-            if (!inMatch) {
+            if (!inMatch && inQueue) {
                statusDiv.textContent = 'Saiu da fila recentemente.';
+               inQueue = false;
             }
          });
 
          socket.on('duel_start', (data) => {
             inMatch = true;
+            inQueue = false;
             console.log('duel_start recebido:', data);
             statusDiv.textContent = `Duelo contra ${data.opponent}, sala: ${data.roomId}`;
             if (Array.isArray(data.deck)) {
@@ -83,6 +92,7 @@
 
          socket.on('opponent_disconnected', () => {
             inMatch = false;
+            inQueue = false;
             statusDiv.textContent = 'O oponente saiu da partida.';
             deckDiv.innerHTML = '';
             selectedCardDiv.textContent = 'Nenhuma';
@@ -120,6 +130,7 @@
 
          socket.on('duelEnded', (data) => {
             inMatch = false;
+            inQueue = false;
             console.log('Evento duelEnded recebido no frontend:', data);
             let resultadoFinal;
 

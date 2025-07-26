@@ -9,10 +9,10 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { DuelsService } from './duels.service';
-import { Player, DuelRoom, Card } from './types/duels.types';
+import { Player } from './types/duels.types';
+import { Card } from '../cards/schemas/card.schema';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { Inject, UseGuards } from '@nestjs/common';
 
 @WebSocketGateway({ cors: true })
 export class DuelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -113,7 +113,7 @@ export class DuelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
          const deck = await this.duelsService.getUserDeck(userId);
 
          if (deck.length < 10) {
-            console.log("usuário não tem cartas suficientes:", username);
+            console.log('usuário não tem cartas suficientes:', username);
             client.emit('insuficient_deck');
             client.emit(
                'error',
@@ -237,6 +237,11 @@ export class DuelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
          room.roundPlays.push(currentRound);
       }
 
+      if (!data.selectedCard._id) {
+         client.emit('error', 'Carta sem id.');
+         return;
+      }
+
       if (client.id === player1.socketId && !currentRound.playerCardId) {
          currentRound.playerCardId = data.selectedCard._id.toString();
       } else if (
@@ -256,10 +261,10 @@ export class DuelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       if (!currentRound.playerCardId || !currentRound.opponentCardId) return;
 
       const card1 = player1.hand.find(
-         (c) => c.id === currentRound.playerCardId,
+         (c) => c._id?.toString() === currentRound.playerCardId,
       );
       const card2 = player2.hand.find(
-         (c) => c.id === currentRound.opponentCardId,
+         (c) => c._id?.toString() === currentRound.opponentCardId,
       );
 
       const kda1 = parseFloat(card1?.kda || '0');
@@ -359,10 +364,10 @@ export class DuelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
          console.log('Removendo id:', currentRound.playerCardId);
 
          player1.hand = player1.hand.filter(
-            (c) => c._id.toString() !== currentRound.playerCardId,
+            (c) => c._id?.toString() !== currentRound.playerCardId,
          );
          player2.hand = player2.hand.filter(
-            (c) => c._id.toString() !== currentRound.opponentCardId,
+            (c) => c._id?.toString() !== currentRound.opponentCardId,
          );
 
          room.round++;

@@ -59,7 +59,8 @@
          });
 
          socket.on('insuficient_deck', () => {
-            statusDiv.textContent = 'Você precisa de pelo menos 10 cartas no deck.';
+            statusDiv.textContent =
+               'Você precisa de pelo menos 10 cartas no deck.';
          });
 
          socket.on('waiting_for_opponent', () => {

@@ -5,174 +5,176 @@ export type CardDocument = Card & Document;
 
 @Schema({ timestamps: true })
 export class Card {
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  userId: Types.ObjectId;
+   _id?: Types.ObjectId;
 
-  @Prop({ required: true })
-  gameMode: string;
+   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+   userId: Types.ObjectId;
 
-  @Prop({ required: true })
-  championName: string;
+   @Prop({ required: true })
+   gameMode: string;
 
-  @Prop()
-  riotIdGameName: string;
+   @Prop({ required: true })
+   championName: string;
 
-  @Prop()
-  riotIdTagline: string;
+   @Prop()
+   riotIdGameName: string;
 
-  @Prop()
-  positionPlayer: string;
+   @Prop()
+   riotIdTagline: string;
 
-  @Prop()
-  role: string;
+   @Prop()
+   positionPlayer: string;
 
-  @Prop()
-  realRole: string;
+   @Prop()
+   role: string;
 
-  @Prop()
-  kills: number;
+   @Prop()
+   realRole: string;
 
-  @Prop()
-  deaths: number;
+   @Prop()
+   kills: number;
 
-  @Prop()
-  assists: number;
+   @Prop()
+   deaths: number;
 
-  @Prop()
-  kda: string;
+   @Prop()
+   assists: number;
 
-  @Prop()
-  killParticipation: string;
+   @Prop()
+   kda: string;
 
-  @Prop()
-  totalDamageDealtToChampions: number;
+   @Prop()
+   killParticipation: string;
 
-  @Prop()
-  totalMinionsKilled: number;
+   @Prop()
+   totalDamageDealtToChampions: number;
 
-  @Prop()
-  totalNeutralMinionsKilled: number;
+   @Prop()
+   totalMinionsKilled: number;
 
-  @Prop()
-  totalMinionsKilledJg: number;
+   @Prop()
+   totalNeutralMinionsKilled: number;
 
-  @Prop()
-  teamId: number;
+   @Prop()
+   totalMinionsKilledJg: number;
 
-  @Prop()
-  teamDragonsKilled: number;
+   @Prop()
+   teamId: number;
 
-  @Prop()
-  teamBaronsKilled: number;
+   @Prop()
+   teamDragonsKilled: number;
 
-  @Prop()
-  matchDragons: number;
+   @Prop()
+   teamBaronsKilled: number;
 
-  @Prop()
-  matchBarons: number;
+   @Prop()
+   matchDragons: number;
 
-  @Prop()
-  jungleKing: boolean;
+   @Prop()
+   matchBarons: number;
 
-  @Prop()
-  gameLength: number;
+   @Prop()
+   jungleKing: boolean;
 
-  @Prop()
-  damagePerMinute: string;
+   @Prop()
+   gameLength: number;
 
-  @Prop()
-  minionsPerMinute: string;
+   @Prop()
+   damagePerMinute: string;
 
-  @Prop()
-  minionsPerMinuteJg: string;
+   @Prop()
+   minionsPerMinute: string;
 
-  @Prop()
-  goldPerMinute: string;
+   @Prop()
+   minionsPerMinuteJg: string;
 
-  @Prop()
-  timeCCingOthers: number;
+   @Prop()
+   goldPerMinute: string;
 
-  @Prop()
-  visionScore: number;
+   @Prop()
+   timeCCingOthers: number;
 
-  @Prop()
-  firstBloodKill: boolean;
+   @Prop()
+   visionScore: number;
 
-  @Prop()
-  firstBloodAssist: boolean;
+   @Prop()
+   firstBloodKill: boolean;
 
-  @Prop()
-  firstTowerKill: boolean;
+   @Prop()
+   firstBloodAssist: boolean;
 
-  @Prop()
-  firstTowerAssist: boolean;
+   @Prop()
+   firstTowerKill: boolean;
 
-  @Prop()
-  totalDamageShieldedOnTeammates: number;
+   @Prop()
+   firstTowerAssist: boolean;
 
-  @Prop()
-  totalHealsOnTeammates: number;
+   @Prop()
+   totalDamageShieldedOnTeammates: number;
 
-  @Prop()
-  totalDamageTaken: number;
+   @Prop()
+   totalHealsOnTeammates: number;
 
-  @Prop()
-  baronKills: number;
+   @Prop()
+   totalDamageTaken: number;
 
-  @Prop()
-  dragonKills: number;
+   @Prop()
+   baronKills: number;
 
-  @Prop()
-  quadraKills: number;
+   @Prop()
+   dragonKills: number;
 
-  @Prop()
-  pentaKills: number;
+   @Prop()
+   quadraKills: number;
 
-  @Prop()
-  splashArt: string;
+   @Prop()
+   pentaKills: number;
 
-  @Prop()
-  iconChampion: string;
+   @Prop()
+   splashArt: string;
 
-  @Prop()
-  corDaBorda: string;
+   @Prop()
+   iconChampion: string;
 
-  @Prop()
-  corDoVerso: string;
+   @Prop()
+   corDaBorda: string;
 
-  @Prop({ type: Object })
-  perks: Record<string, string>;
+   @Prop()
+   corDoVerso: string;
 
-  @Prop({ type: Object })
-  summonerSpells: Record<string, string>;
+   @Prop({ type: Object })
+   perks: Record<string, string>;
 
-  @Prop({ type: Object })
-  items: Record<string, string | null>;
+   @Prop({ type: Object })
+   summonerSpells: Record<string, string>;
 
-  @Prop({ type: Object })
-  augments: Record<string, string | null>;
+   @Prop({ type: Object })
+   items: Record<string, string | null>;
 
-  @Prop({ type: [String], default: [] })
-  achievements: string[]; 
+   @Prop({ type: Object })
+   augments: Record<string, string | null>;
 
-  @Prop()
-  gameDate: string;
+   @Prop({ type: [String], default: [] })
+   achievements: string[];
+
+   @Prop()
+   gameDate: string;
 }
 
 export const CardSchema = SchemaFactory.createForClass(Card);
 
 CardSchema.index(
-  {
-    userId: 1,
-    gameMode: 1,
-    championName: 1,
-    gameLength: 1,
-    gameDate: 1,
-    kda: 1,
-    damagePerMinute: 1,
-  },
-  { 
-    unique: true,
-    name: 'unique_card_per_user',
-   }
+   {
+      userId: 1,
+      gameMode: 1,
+      championName: 1,
+      gameLength: 1,
+      gameDate: 1,
+      kda: 1,
+      damagePerMinute: 1,
+   },
+   {
+      unique: true,
+      name: 'unique_card_per_user',
+   },
 );

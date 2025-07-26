@@ -59,7 +59,8 @@
          });
 
          socket.on('insuficient_deck', () => {
-            statusDiv.textContent = 'Você precisa de pelo menos 10 cartas no deck.';
+            statusDiv.textContent =
+               'Você precisa de pelo menos 10 cartas no deck.';
          });
 
          socket.on('waiting_for_opponent', () => {
@@ -69,14 +70,16 @@
             }
          });
 
-         socket.on('queue_left', () => {            
+         socket.on('queue_left', () => {
             if (!inMatch && inQueue) {
                statusDiv.textContent = 'Saiu da fila recentemente.';
+               inQueue = false;
             }
          });
 
          socket.on('duel_start', (data) => {
             inMatch = true;
+            inQueue = false;
             console.log('duel_start recebido:', data);
             statusDiv.textContent = `Duelo contra ${data.opponent}, sala: ${data.roomId}`;
             if (Array.isArray(data.deck)) {
@@ -89,6 +92,7 @@
 
          socket.on('opponent_disconnected', () => {
             inMatch = false;
+            inQueue = false;
             statusDiv.textContent = 'O oponente saiu da partida.';
             deckDiv.innerHTML = '';
             selectedCardDiv.textContent = 'Nenhuma';
@@ -126,6 +130,7 @@
 
          socket.on('duelEnded', (data) => {
             inMatch = false;
+            inQueue = false;
             console.log('Evento duelEnded recebido no frontend:', data);
             let resultadoFinal;
 

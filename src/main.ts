@@ -7,7 +7,7 @@ async function bootstrap() {
    await loadExternalData();
    const app = await NestFactory.create(AppModule);
    app.enableCors({
-      origin: process.env.CORS_ORIGIN || 'http://127.0.0.1:5500',
+      origin: process.env.CORS_ORIGIN?.split(','),
    });
 
    app.useWebSocketAdapter(new IoAdapter(app));
