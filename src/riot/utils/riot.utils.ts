@@ -67,16 +67,29 @@ export function isValidRiotId(
 }
 
 export function defineSkinPosition(
-   skins: { id: string; num: number }[],
-   kills: number,
-   deaths: number,
-   assists: number,
+  skins: { id: string; num: number }[],
+  kills: number,
+  deaths: number,
+  assists: number,
 ): number {
-   const kda = (kills + assists) / Math.max(1, deaths);
+  if (skins.length === 0) return 0;
 
-   if (kda < 2) return 0;
-   if (kda < 4) return skins.length > 1 ? 1 : 0;
-   return skins.length > 2 ? 2 : skins.length - 1;
+  const kda = ((kills + assists) / Math.max(deaths, 1));
+  
+  let quartile = 0;
+  if (kda < 1.0) quartile = 0;
+  else if (kda < 3.0) quartile = 1;
+  else if (kda < 5.0) quartile = 2;
+  else quartile = 3;
+
+  const quartileSize = Math.ceil(skins.length / 4);
+
+  const endIndex = Math.min((quartile + 1) * quartileSize, skins.length); 
+          
+  const aleatorio = Math.random(); 
+  const randomIndex = Math.floor(aleatorio * endIndex);
+
+  return randomIndex;
 }
 
 function buildAchievements(data: {
