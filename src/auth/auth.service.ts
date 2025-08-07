@@ -17,7 +17,17 @@ export class AuthService {
       }
 
       const newUser = await this.usersService.create({ username, password });
-      return { message: 'Usuário criado com sucesso', id: newUser._id };
+
+      const payload = { sub: newUser._id, username: newUser.username };
+      const token = this.jwtService.sign(payload); 
+
+      return {
+         access_token: token,
+         user: { id: newUser._id, username: newUser.username },
+         message: 'Usuário criado com sucesso', 
+      };
+
+      // return { message: 'Usuário criado com sucesso', id: newUser._id };
    }
 
    async login(username: string, password: string) {
