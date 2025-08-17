@@ -25,7 +25,7 @@ export class RiotController {
       );
       const lastMatchId = matchIdResponse;
 
-      console.log(`Último ID de partida: ${lastMatchId}`);
+      // console.log(`Último ID de partida: ${lastMatchId}`);
 
       if (!lastMatchId) {
          throw new NotFoundException('Nenhuma partida encontrada..');

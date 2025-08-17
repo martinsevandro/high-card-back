@@ -170,7 +170,7 @@ export class RiotService {
 
          const champRes = await firstValueFrom(
             this.httpService.get(
-               `http://ddragon.leagueoflegends.com/cdn/15.8.1/data/en_US/champion/${playerStats.championName}.json`,
+               `http://ddragon.leagueoflegends.com/cdn/15.15.1/data/en_US/champion/${playerStats.championName}.json`,
             ),
          );
 
@@ -185,7 +185,7 @@ export class RiotService {
 
          const splashArtUrl = `https://ddragon.leagueoflegends.com/cdn/img/champion/loading/${playerStats.championName}_${selectedSkinNum}.jpg`;
          const iconChampionUrl = duoStats
-            ? `https://ddragon.leagueoflegends.com/cdn/15.8.1/img/champion/${duoStats.championName}.png`
+            ? `https://ddragon.leagueoflegends.com/cdn/15.15.1/img/champion/${duoStats.championName}.png`
             : null;
 
          return createFilteredData(
