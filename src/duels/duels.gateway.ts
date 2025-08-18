@@ -14,7 +14,15 @@ import { Card } from '../cards/schemas/card.schema';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 
-@WebSocketGateway({ cors: true })
+const allowedOrigins =
+  process.env.CORS_ORIGIN?.split(',').map(o => o.trim()).filter(Boolean) ?? [];
+
+@WebSocketGateway({
+   cors: {
+      origin: allowedOrigins,
+      credentials: false,
+   },
+})
 export class DuelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
    @WebSocketServer() server: Server;
 
