@@ -25,6 +25,8 @@ async function bootstrap() {
 
    app.useWebSocketAdapter(new IoAdapter(app));
 
+   app.setGlobalPrefix('api');
+
    await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();
