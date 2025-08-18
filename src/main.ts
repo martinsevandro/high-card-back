@@ -3,7 +3,7 @@ import { AppModule } from './app.module';
 import { loadExternalData } from './cards/utils/card.utils';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import helmet from 'helmet';
-import compression from 'compression';
+import * as compression from 'compression';
 
 async function bootstrap() {
    await loadExternalData();
