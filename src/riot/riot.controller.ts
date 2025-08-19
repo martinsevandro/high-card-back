@@ -1,7 +1,7 @@
 import { Controller, Get, NotFoundException, Param } from '@nestjs/common';
 import { RiotService } from './riot.service';
 
-@Controller('api')
+@Controller()
 export class RiotController {
    constructor(private readonly riotService: RiotService) {}
 
