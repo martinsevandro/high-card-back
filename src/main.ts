@@ -4,11 +4,25 @@ import { loadExternalData } from './cards/utils/card.utils';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import helmet from 'helmet';
 import * as compression from 'compression';
+import { Request, Response, NextFunction } from 'express';
 
 async function bootstrap() {
    await loadExternalData();
 
    const app = await NestFactory.create(AppModule);
+
+   app.use((_req: Request, res: Response, next: NextFunction) => {
+     res.header('Access-Control-Allow-Origin', '*');
+     res.header(
+       'Access-Control-Allow-Headers',
+       'Origin, X-Requested-With, Content-Type, Accept, Authorization',
+     );
+     res.header(
+       'Access-Control-Allow-Methods',
+       'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+     );
+     next();
+   });
 
    const allowedOrigins =
     process.env.CORS_ORIGIN?.split(',').map(o => o.trim()).filter(Boolean) ?? [];
