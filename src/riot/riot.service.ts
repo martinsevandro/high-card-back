@@ -124,18 +124,22 @@ export class RiotService {
          throw new HttpException('PUUID inválido', HttpStatus.BAD_REQUEST);
       }
 
-      if (!/^[A-Z0-9]{2,4}_\d{5,}$/.test(matchId)) {
-         throw new HttpException('matchId inválido', HttpStatus.BAD_REQUEST);
-      }
-
       if (!regionalRoute) {
          throw new HttpException('Servidor inválido', HttpStatus.BAD_REQUEST);
       }
 
+      const normalizedMatchId = matchId.replace(/^[A-Z0-9]{2,4}_/, '');
+
+      if (!/^\d{5,}$/.test(normalizedMatchId)) {
+         throw new HttpException('matchId inválido', HttpStatus.BAD_REQUEST);
+      }
+
+      const fullMatchId = `${server.toUpperCase()}_${normalizedMatchId}`;
+
       try {
          const response = await firstValueFrom(
             this.httpService.get(
-               `https://${regionalRoute}.api.riotgames.com/lol/match/v5/matches/${matchId}`,
+               `https://${regionalRoute}.api.riotgames.com/lol/match/v5/matches/${fullMatchId}`,
                {
                   headers: { 'X-Riot-Token': this.apiKey },
                   validateStatus: () => true,
