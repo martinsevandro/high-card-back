@@ -42,5 +42,9 @@ async function bootstrap() {
    app.setGlobalPrefix('api');
 
    await app.listen(process.env.PORT ?? 3000);
+
+   console.log(`Servidor iniciado na porta ${process.env.PORT ?? 3000}`);
+   console.log('CORS_ORIGIN:', process.env.CORS_ORIGIN);
+
 }
 bootstrap();
