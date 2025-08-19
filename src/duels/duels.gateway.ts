@@ -19,7 +19,7 @@ const allowedOrigins =
 
 @WebSocketGateway({
    cors: {
-      origin: allowedOrigins,
+      origin: '*',
       credentials: false,
    },
 })
