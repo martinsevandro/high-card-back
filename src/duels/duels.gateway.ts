@@ -18,11 +18,24 @@ const allowedOrigins =
   process.env.CORS_ORIGIN?.split(',').map(o => o.trim()).filter(Boolean) ?? [];
 
 @WebSocketGateway({
-   cors: {
-      origin: '*',
-      credentials: false,
-   },
+  cors: {
+    origin: (origin, callback) => {
+      const allowedOrigins = (process.env.CORS_ORIGIN ?? '')
+        .split(',')
+        .map(o => o.trim())
+        .filter(Boolean);
+
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.warn(`Origin bloqueada: ${origin}`);
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: false,
+  },
 })
+
 export class DuelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
    @WebSocketServer() server: Server;
 
