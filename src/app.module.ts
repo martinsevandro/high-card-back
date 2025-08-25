@@ -15,6 +15,8 @@ import { RiotModule } from './riot/riot.module';
 
 import { DuelsModule } from './duels/duels.module';
 
+import { HealthModule } from './health/health.module';
+
 @Module({
    imports: [
       ConfigModule.forRoot({ isGlobal: true }),
@@ -45,6 +47,7 @@ import { DuelsModule } from './duels/duels.module';
       UsersModule,
       RiotModule,
       DuelsModule,
+      HealthModule,
    ],
    controllers: [AppController, ProtectedController],
 })
