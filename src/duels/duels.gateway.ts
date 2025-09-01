@@ -6,6 +6,7 @@ import {
    ConnectedSocket,
    OnGatewayConnection,
    OnGatewayDisconnect,
+   WsException,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { DuelsService } from './duels.service';
@@ -134,9 +135,10 @@ export class DuelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
          const deck = await this.duelsService.getUserDeck(userId);
 
          if (deck.length < 10) {
-            console.log('usuário não tem cartas suficientes:', username);
-            client.emit('insuficient_deck'); 
-            return;
+            console.log('entrou no if do deck < 10');
+            throw new WsException({
+               code: 'INSUFFICIENT_DECK'
+            });
          }
 
          const player: Player = {
@@ -166,11 +168,15 @@ export class DuelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
             if (player1.userId === player2.userId) {
                this.duelsService.removeRoom(room.roomId);
-               client.emit(
-                  'error',
-                  'Você não pode entrar em um duelo contra si mesmo.',
-               );
-               return;
+               // client.emit(
+               //    'error',
+               //    'Você não pode entrar em um duelo contra si mesmo.',
+               // );
+               // return;
+
+               throw new WsException({
+                  code: 'ONESELF_DUEL'
+               });
             }
 
             const client1 = this.server.sockets.sockets.get(player1.socketId);
@@ -216,8 +222,15 @@ export class DuelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
             }
          }
       } catch (err) {
-         console.error(err);
-         client.emit('error', 'Erro ao tentar entrar na fila.');
+         // console.error(err);
+         // client.emit('error', 'Erro ao tentar entrar na fila.');
+         if (err instanceof WsException) {
+            throw err;
+         }
+
+         throw new WsException({
+            code: 'QUEUE_JOIN_FAILED'
+         });
       }
    }
 
@@ -228,8 +241,11 @@ export class DuelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
    ) {
       const room = this.duelsService.getRoomBySocket(client.id);
       if (!room) {
-         client.emit('error', 'Sala não encontrada.');
-         return;
+         // client.emit('error', 'Sala não encontrada.');
+         // return;
+         throw new WsException({
+            code: 'ROOM_NOT_FOUND'
+         });
       }
       console.log('Room:', room.roomId);
 
@@ -255,8 +271,11 @@ export class DuelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
 
       if (!data.selectedCard._id) {
-         client.emit('error', 'Carta sem id.');
-         return;
+         // client.emit('error', 'Carta sem id.');
+         // return;
+         throw new WsException({
+            code: 'CARD_NOT_FOUND'
+         });
       }
 
       if (client.id === player1.socketId && !currentRound.playerCardId) {

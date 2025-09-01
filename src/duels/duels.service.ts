@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Player, DuelRoom } from './types/duels.types';
 import { CardsService } from 'src/cards/cards.service';
 import { Card } from 'src/cards/schemas/card.schema';
+import { WsException } from '@nestjs/websockets';
 
 @Injectable()
 export class DuelsService {
@@ -21,15 +22,13 @@ export class DuelsService {
    async addToQueue(player: Player): Promise<DuelRoom | null> {
       if (this.queue.some((p) => p.userId === player.userId)) {
          console.log(`Jogador ${player.username} já está na fila.`);
-         return null;
+         throw new WsException({ code: 'ALREADY_IN_QUEUE' });
       }
 
       for (const room of this.rooms.values()) {
          if (room.players.some((p) => p.userId === player.userId)) {
-            console.log(
-               `Jogador ${player.username} já está em uma partida ativa.`,
-            );
-            return null;
+            console.log(`Jogador ${player.username} já está em uma partida ativa.`);
+            throw new WsException({ code: 'ALREADY_IN_MATCH' });
          }
       }
 
@@ -61,9 +60,9 @@ export class DuelsService {
    async getDeckForDuel(userId: string): Promise<Card[]> {
       const deck = await this.cardsService.findAllByUser(userId);
       if (deck.length < 10) {
-         throw new Error(
-            'O jogador não tem cartas suficientes para iniciar um duelo.',
-         );
+         throw new WsException({
+            code: 'INSUFFICIENT_DECK'
+         });
       }
 
       return this.sortearTresCartas(deck);
