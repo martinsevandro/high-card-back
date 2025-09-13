@@ -14,6 +14,7 @@ import { Player } from './types/duels.types';
 import { Card } from '../cards/schemas/card.schema';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { sanitizeCard, sanitizePlayer, sanitizeRoundResult } from './utils/duels.utils';
 
 const allowedOrigins =
   process.env.CORS_ORIGIN?.split(',').map(o => o.trim()).filter(Boolean) ?? [];
@@ -26,7 +27,7 @@ const allowedOrigins =
         .map(o => o.trim())
         .filter(Boolean);
 
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
         console.warn(`Origin bloqueada: ${origin}`);
@@ -52,7 +53,8 @@ export class DuelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const token = socket.handshake.auth?.token;
 
       if (!token) {
-         console.error('Token não fornecido na conexão WebSocket');
+         console.error(`[${socket.id}] Token faltando na conexão websocket`);
+         socket.emit('auth_error', { message: 'Problema na autenticação!' });
          socket.disconnect();
          return;
       }
@@ -68,8 +70,18 @@ export class DuelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
          console.log(
             `socket conectado: ${socket.id} | usuário: ${payload.username}`,
          );
-      } catch (err) {
-         console.warn('Token inválido na conexão webscoket:', err.message);
+      } catch (err: any) {
+         if (err.name === 'TokenExpiredError') {
+            console.warn(`[${socket.id}] Token expirado na conexão websocket`);
+         } else if (err.name === 'JsonWebTokenError') {
+            console.warn(`[${socket.id}] Token inválido: ${err.message}`);
+         } else if (err.name === 'NotBeforeError') {
+            console.warn(`[${socket.id}] Token não ativo ainda.`);
+         } else {
+            console.error(`[${socket.id}] Erro ao verificar token: `, err);
+         }
+
+         socket.emit('auth_error', { message: 'Erro na autenticação. Faça login novamente.' });
          socket.disconnect();
       }
    }
@@ -91,22 +103,24 @@ export class DuelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
          return;
       }
 
-      const player1 = room.players[0];
-      const player2 = room.players[1];
-
-      const remainingPlayer =
-         player1.socketId === disconnectedId ? player2 : player1;
-      const remainingId = remainingPlayer.socketId;
-
       const scores = room.scores ?? {};
-      const disconnectedScore = scores[disconnectedId] ?? 0;
-      const remainingScore = scores[remainingId] ?? 0;
+      const disconnectedPlayer = room.players.find(p => p.socketId === disconnectedId);
+      const remainingPlayer = room.players.find(p => p.socketId !== disconnectedId);
+
+      const disconnectedScore = scores[disconnectedPlayer?.username || ''] ?? 0;
+      const remainingScore = scores[remainingPlayer?.username || ''] ?? 0;
 
       let finalResult: string;
       let winnerSocketId: string | null = null;
+
+      console.log(`handleDisconnect -> disconnectedScore=${disconnectedScore}, remainingScore=${remainingScore}`);
+
       if (remainingScore > disconnectedScore) {
-         finalResult = `${remainingPlayer.username} venceu o duelo por abandono!`;
-         winnerSocketId = remainingId;
+         finalResult = `${remainingPlayer?.username} venceu o duelo por abandono!`;
+         winnerSocketId = remainingPlayer?.socketId || null;
+      } else if (remainingScore < disconnectedScore) {
+         finalResult = `O duelo terminou empatado!`;
+         winnerSocketId = null;
       } else {
          finalResult = `O duelo terminou empatado!`;
          winnerSocketId = null;
@@ -207,7 +221,7 @@ export class DuelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
                room.players = [player1, player2];
                room.round = 1;
-               room.scores = { [player1.socketId]: 0, [player2.socketId]: 0 };
+               room.scores = { [player1.username]: 0, [player2.username]: 0 };
 
                this.server.to(player1.socketId).emit('duel_start', {
                   roomId: room.roomId,
@@ -222,8 +236,6 @@ export class DuelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
             }
          }
       } catch (err) {
-         // console.error(err);
-         // client.emit('error', 'Erro ao tentar entrar na fila.');
          if (err instanceof WsException) {
             throw err;
          }
@@ -241,8 +253,6 @@ export class DuelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
    ) {
       const room = this.duelsService.getRoomBySocket(client.id);
       if (!room) {
-         // client.emit('error', 'Sala não encontrada.');
-         // return;
          throw new WsException({
             code: 'ROOM_NOT_FOUND'
          });
@@ -271,8 +281,6 @@ export class DuelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
 
       if (!data.selectedCard._id) {
-         // client.emit('error', 'Carta sem id.');
-         // return;
          throw new WsException({
             code: 'CARD_NOT_FOUND'
          });
@@ -303,6 +311,8 @@ export class DuelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
          (c) => c._id?.toString() === currentRound.opponentCardId,
       );
 
+      if (!card1 || !card2) throw new Error(`Erro interno: carta não encontrada para a rodada`);
+      
       const kda1 = parseFloat(card1?.kda || '0');
       const kda2 = parseFloat(card2?.kda || '0');
 
@@ -310,18 +320,18 @@ export class DuelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       if (!room.scores)
          room.scores = {
-            [player1.socketId]: 0,
-            [player2.socketId]: 0,
+            [player1.username]: 0,
+            [player2.username]: 0,
          };
 
       if (kda1 > kda2) {
-         room.scores[player1.socketId]++;
+         room.scores[player1.username]++;
          result = `${player1.username} venceu a rodada ${room.round}`;
          console.log(
             `Rodada ${room.round} - ${player1.username} venceu com KDA ${kda1} contra ${player2.username} com KDA ${kda2}`,
          );
       } else if (kda2 > kda1) {
-         room.scores[player2.socketId]++;
+         room.scores[player2.username]++;
          result = `${player2.username} venceu a rodada ${room.round}`;
          console.log(
             `Rodada ${room.round} - ${player2.username} venceu com KDA ${kda2} contra ${player1.username} com KDA ${kda1}`,
@@ -351,26 +361,21 @@ export class DuelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
          scores: room.scores,
       });
 
-      this.server.to(player1.socketId).emit('roundResult', {
-         yourCard: card1,
-         opponentCard: card2,
-         result,
-         scores: room.scores,
-      });
+      this.server.to(player1.socketId).emit('roundResult', 
+         sanitizeRoundResult(card1, card2, result, room.scores)
+      );
 
-      this.server.to(player2.socketId).emit('roundResult', {
-         yourCard: card2,
-         opponentCard: card1,
-         result,
-         scores: room.scores,
-      });
+      this.server.to(player2.socketId).emit('roundResult', 
+         sanitizeRoundResult(card2, card1, result, room.scores)
+      );
 
-      const score1 = room.scores[player1.socketId];
-      const score2 = room.scores[player2.socketId];
+      const score1 = room.scores[player1.username];
+      const score2 = room.scores[player2.username];
 
       if (score1 === 2 || score2 === 2 || room.round === 3) {
          let finalResult: string;
          let winnerSocketId: string | null = null;
+
          if (score1 > score2) {
             finalResult = `${player1.username} venceu o duelo!`;
             winnerSocketId = player1.socketId;
@@ -381,14 +386,12 @@ export class DuelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
             finalResult = 'Duelo empatado!';
          }
 
-         console.log('Emitindo evento duelEnded:', {
-            finalResult,
-            scores: room.scores,
-         });
          this.server.to(room.roomId).emit('duelEnded', {
             finalResult,
             scores: room.scores,
-            winnerSocketId,
+            winner: winnerSocketId 
+               ? { username: [player1, player2].find(p => p.socketId === winnerSocketId)?.username }
+               : null,
          });
 
          this.duelsService.removeRoom(room.roomId);
@@ -417,7 +420,7 @@ export class DuelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
          );
          this.server.to(player1.socketId).emit('nextRound', {
             round: room.round,
-            deck: player1.hand,
+            deck: player1.hand.map((c) => sanitizeCard(c)),
          });
          console.log(
             `Nova Mão do ${player2.username}:`,
@@ -425,7 +428,7 @@ export class DuelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
          );
          this.server.to(player2.socketId).emit('nextRound', {
             round: room.round,
-            deck: player2.hand,
+            deck: player2.hand.map((c) => sanitizeCard(c)),
          });
       }
    }

@@ -4,7 +4,6 @@ import { loadExternalData } from './cards/utils/card.utils';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import helmet from 'helmet';
 import * as compression from 'compression';
-import { Request, Response, NextFunction } from 'express';
 
 async function bootstrap() {
    await loadExternalData();
