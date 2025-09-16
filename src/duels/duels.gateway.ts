@@ -370,25 +370,23 @@ export class DuelsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const score2 = room.scores[player2.username];
 
       if (score1 === 2 || score2 === 2 || room.round === 3) {
-         let finalResult: string;
-         let winnerSocketId: string | null = null;
+         const winner = score1 > score2 ? player1 : score2 > score1 ? player2 : null;
 
-         if (score1 > score2) {
-            finalResult = `${player1.username} venceu o duelo!`;
-            winnerSocketId = player1.socketId;
-         } else if (score2 > score1) {
-            finalResult = `${player2.username} venceu o duelo!`;
-            winnerSocketId = player2.socketId;
-         } else {
-            finalResult = 'Duelo empatado!';
-         }
+         room.players.forEach(player => {
+            let message: string;
+            if (!winner) {
+               message = 'Duelo empatado!';
+            } else if (player.username === winner.username) {
+               message = 'Você venceu o duelo!';
+            } else {
+               message = 'Você perdeu o duelo!';
+            }
 
-         this.server.to(room.roomId).emit('duelEnded', {
-            finalResult,
-            scores: room.scores,
-            winner: winnerSocketId 
-               ? { username: [player1, player2].find(p => p.socketId === winnerSocketId)?.username }
-               : null,
+            this.server.to(player.socketId).emit('duelEnded', {
+               finalResult: message,
+               scores: room.scores,
+               winner: winner ? { username: winner.username } : null,
+            });
          });
 
          this.duelsService.removeRoom(room.roomId);
